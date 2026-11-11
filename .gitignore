@@ -1,0 +1,52 @@
+# ---- Secrets and credentials (never commit) ----
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+secrets/
+
+# ---- Python ----
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+*.egg-info/
+dist/
+build/
+
+# ---- Node / frontend ----
+node_modules/
+npm-debug.log*
+*.tsbuildinfo
+
+# ---- Data, databases and evidence (synthetic data in data/synthetic/ IS tracked) ----
+*.dump
+*.sql.gz
+*.sqlite3
+*.db
+data/real/
+data/private/
+postgres-data/
+pgdata/
+/backups/
+/uploads/
+/evidence/
+
+# ---- Logs ----
+*.log
+logs/
+
+# ---- OS and editor ----
+Thumbs.db
+desktop.ini
+.DS_Store
+.idea/
+.vscode/
