@@ -21,7 +21,7 @@ Only verified facts are recorded as facts; everything else is marked as open.
 | Node.js / npm | v26.13.0 / 11.20.0. The published schedule puts Node 26 in Active LTS from 28 Oct 2026; the `process.release.lts` label was not checked. |
 | VS Code | 1.145.2; `files.eol` set to LF in user settings |
 | WSL | 3.0.5.0, kernel 6.18.58.1-1; `.wslconfig` caps memory at 3 GB, 4 processors, 2 GB swap |
-| Docker Desktop | 4.99.0, engine 29.9.3, WSL 2 backend; `hello-world` ran; engine memory about 2.84 GiB, so the cap works |
+| Docker Desktop | 4.99.0, engine 29.9.3, WSL 2 backend; `hello-world` ran; engine memory about 2.84 GiB, so the cap works. Re-checked 2026-11-13 after the owner signed in: engine 29.9.3 reachable, memory 3051933696 bytes. |
 | PostgreSQL | **Not installed.** Plan: PostgreSQL with PostGIS in a Docker container, with a native install as fallback. |
 
 ## Repository
@@ -39,6 +39,7 @@ Only verified facts are recorded as facts; everything else is marked as open.
 | Project overview | `README.md` | Committed |
 | Scope, boundaries and data classification | `docs/governance/scope-and-boundaries.md` | Draft v0.1 |
 | Threat model (v0.1, local deployment) | `docs/security/threat-model.md` | Draft v0.1 |
+| System architecture | `docs/architecture/system-architecture.md` | Draft v0.1 |
 
 ## Decisions made
 
@@ -54,7 +55,7 @@ Only verified facts are recorded as facts; everything else is marked as open.
 - [ ] Docker Desktop: the owner reports having signed in. Whether sign-in is mandatory is not verified, so documentation must not claim "no account required". This is separate from Docker's runtime state, which was verified on 2026-11-11 and is re-checked at each environment assessment.
 - [ ] Software licence for HALO not chosen.
 - [ ] Threat model open questions now have proposed defaults in the architecture document (sessions, evidence storage, MFA), awaiting owner review.
-- [ ] Remaining Phase 0 documents: product requirements, system architecture, data-source register, initial database design, development plan.
+- [ ] Remaining Phase 0 documents: product requirements, data-source register, initial database design, development plan.
 - [ ] South African legal questions are listed in the scope document but not yet researched (POPIA, RICA, Cybercrimes Act, Electronic Communications Act, ICASA numbering rules).
 - [ ] The legacy `py.exe` launcher shadows the new one on PATH. Harmless; use `pymanager` and `python3.14` explicitly.
 - [ ] `.vscode/` is git-ignored, so editor settings are not shared. Add an `.editorconfig` later.
@@ -62,7 +63,7 @@ Only verified facts are recorded as facts; everything else is marked as open.
 
 ## Next steps
 
-1. Write the system architecture and initial database design documents.
+1. Write the initial database design document, then the data-source register and the development plan.
 2. Write the data-source register and the development plan.
 3. Start PostgreSQL with PostGIS via Docker Compose and verify it.
 4. Create the backend virtual environment with Python 3.14.
