@@ -47,14 +47,13 @@ Only verified facts are recorded as facts; everything else is marked as open.
 3. GitHub repository is private until a pre-publication review.
 4. LF line endings everywhere, except `.bat`, `.cmd` and `.ps1`.
 5. Files are created in VS Code. Before `git add`, check the file is saved (no dot on its tab) and its path in `git status` is correct.
-6. Working assumptions, not yet explicitly confirmed by the owner: model all seven roles in the database but enable only administrator, investigator and read-only in v0.1; user-submitted reports not before Phase 5.
+6. Confirmed by the owner (2026-11-13): all seven roles are modelled; only administrator, investigator and read-only are enabled in v0.1; user-submitted reports are deferred to Phase 5. Interpretation of "administrator" as organisation administrator is proposed in the architecture document and awaits confirmation.
 
 ## Open items
 
-- [ ] Whether Docker Desktop required sign-in: **not verified**. Needed before documentation claims "no account required".
+- [ ] Docker Desktop: the owner reports having signed in. Whether sign-in is mandatory is not verified, so documentation must not claim "no account required". This is separate from Docker's runtime state, which was verified on 2026-11-11 and is re-checked at each environment assessment.
 - [ ] Software licence for HALO not chosen.
-- [ ] Owner to confirm or change the working assumptions in decision 6.
-- [ ] Threat model open questions: evidence storage method, session mechanism, whether multi-factor authentication is in v0.1.
+- [ ] Threat model open questions now have proposed defaults in the architecture document (sessions, evidence storage, MFA), awaiting owner review.
 - [ ] Remaining Phase 0 documents: product requirements, system architecture, data-source register, initial database design, development plan.
 - [ ] South African legal questions are listed in the scope document but not yet researched (POPIA, RICA, Cybercrimes Act, Electronic Communications Act, ICASA numbering rules).
 - [ ] The legacy `py.exe` launcher shadows the new one on PATH. Harmless; use `pymanager` and `python3.14` explicitly.
