@@ -3,7 +3,7 @@
 Resume point for development sessions. Update at the end of every milestone.
 Only verified facts are recorded as facts; everything else is marked as open.
 
-**Last updated:** 2026-11-13
+**Last updated:** 2026-11-14
 **Current phase:** Phase 0 (requirements and governance documents). The Phase 1 environment is complete except PostgreSQL.
 **Next milestone:** Remaining Phase 0 documents, then PostgreSQL with PostGIS via Docker Compose, then the backend foundation
 
@@ -44,6 +44,7 @@ Only verified facts are recorded as facts; everything else is marked as open.
 | Data-source register | `docs/research/data-source-register.md` | Draft v0.1 |
 | Decision register | `docs/architecture/decision-register.md` | Draft v0.1 |
 | Product requirements | `docs/governance/product-requirements.md` | Draft v0.1 |
+| Development plan | `docs/governance/development-plan.md` | Draft v0.1 |
 
 ## Decisions made
 
@@ -60,7 +61,7 @@ Only verified facts are recorded as facts; everything else is marked as open.
 - [ ] Docker Desktop: the owner reports having signed in. Whether sign-in is mandatory is not verified, so documentation must not claim "no account required". This is separate from Docker's runtime state, which was verified on 2026-11-11 and is re-checked at each environment assessment.
 - [ ] Software licence for HALO not chosen.
 - [ ] Threat model open questions now have proposed defaults in the architecture document (sessions, evidence storage, MFA), awaiting owner review.
-- [ ] Remaining Phase 0 documents: development plan.
+- [ ] Development plan open decisions (section 9 of `development-plan.md`) await owner review: the vertical-slice ordering, the v0.1 risk rules and thresholds, feature branches, and when multi-factor authentication arrives.
 - [ ] Product requirements open decisions (section 8 of `product-requirements.md`) await owner review, including whether to add a "Not assessed: insufficient information" risk result.
 - [ ] Database design open decisions (section 10 of `database-design.md`) await owner review.
 - [ ] At install time: verify the phonenumberslite licence and version, and that parsing, validity, region and number type work without the carrier and geocoding data.
@@ -71,7 +72,6 @@ Only verified facts are recorded as facts; everything else is marked as open.
 
 ## Next steps
 
-1. Write the development plan.
-2. Start PostgreSQL with PostGIS via Docker Compose and verify it.
-3. Create the backend virtual environment with Python 3.14.
-4. Start Phase 2: FastAPI skeleton and health-check endpoint.
+1. Re-verify the environment (Docker running and its memory cap, Git, Python 3.14), then start PostgreSQL with PostGIS via Docker Compose and verify it (milestone M1).
+2. Create the backend virtual environment with Python 3.14 and install pinned dependencies, checking each licence (M2).
+3. Build the backend skeleton and health endpoint with tests (M2).
