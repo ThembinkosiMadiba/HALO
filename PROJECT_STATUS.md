@@ -41,6 +41,8 @@ Only verified facts are recorded as facts; everything else is marked as open.
 | Threat model (v0.1, local deployment) | `docs/security/threat-model.md` | Draft v0.1 |
 | System architecture | `docs/architecture/system-architecture.md` | Draft v0.1 |
 | Initial database design | `docs/architecture/database-design.md` | Draft v0.1 |
+| Data-source register | `docs/research/data-source-register.md` | Draft v0.1 |
+| Decision register | `docs/architecture/decision-register.md` | Draft v0.1 |
 
 ## Decisions made
 
@@ -50,14 +52,16 @@ Only verified facts are recorded as facts; everything else is marked as open.
 4. LF line endings everywhere, except `.bat`, `.cmd` and `.ps1`.
 5. Files are created in VS Code. Before `git add`, check the file is saved (no dot on its tab) and its path in `git status` is correct.
 6. Confirmed by the owner (2026-11-13): all seven roles are modelled; only administrator, investigator and read-only are enabled in v0.1; user-submitted reports are deferred to Phase 5. Interpretation of "administrator" as organisation administrator is proposed in the architecture document and awaits confirmation.
+7. Confirmed by the owner (2026-11-14): use the phonenumberslite build for v0.1; carrier and geocoding enrichment are deferred until reliable, authoritative, legally usable sources exist. See decision register DEC-008.
 
 ## Open items
 
 - [ ] Docker Desktop: the owner reports having signed in. Whether sign-in is mandatory is not verified, so documentation must not claim "no account required". This is separate from Docker's runtime state, which was verified on 2026-11-11 and is re-checked at each environment assessment.
 - [ ] Software licence for HALO not chosen.
 - [ ] Threat model open questions now have proposed defaults in the architecture document (sessions, evidence storage, MFA), awaiting owner review.
-- [ ] Remaining Phase 0 documents: product requirements, data-source register, development plan.
+- [ ] Remaining Phase 0 documents: product requirements, development plan.
 - [ ] Database design open decisions (section 10 of `database-design.md`) await owner review.
+- [ ] At install time: verify the phonenumberslite licence and version, and that parsing, validity, region and number type work without the carrier and geocoding data.
 - [ ] South African legal questions are listed in the scope document but not yet researched (POPIA, RICA, Cybercrimes Act, Electronic Communications Act, ICASA numbering rules).
 - [ ] The legacy `py.exe` launcher shadows the new one on PATH. Harmless; use `pymanager` and `python3.14` explicitly.
 - [ ] `.vscode/` is git-ignored, so editor settings are not shared. Add an `.editorconfig` later.
@@ -65,7 +69,7 @@ Only verified facts are recorded as facts; everything else is marked as open.
 
 ## Next steps
 
-1. Write the data-source register, the product requirements and the development plan.
+1. Write the product requirements and the development plan.
 2. Start PostgreSQL with PostGIS via Docker Compose and verify it.
 3. Create the backend virtual environment with Python 3.14.
 4. Start Phase 2: FastAPI skeleton and health-check endpoint.

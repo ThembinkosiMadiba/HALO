@@ -135,7 +135,7 @@ Licences are from memory and **must be verified when each dependency is installe
 | Python 3.14 | Language | PSF | Yes | No |
 | FastAPI, Pydantic | API and validation | MIT | Yes | No |
 | SQLAlchemy, Alembic | ORM and migrations | MIT | Yes | No |
-| phonenumbers | Number parsing and metadata | Apache-2.0 | Yes | No (metadata bundled) |
+| phonenumberslite | Number parsing, validation and number type (no carrier, geocoding or timezone data) | Apache-2.0 (verify) | Yes | No (metadata bundled) |
 | argon2-cffi | Password hashing | MIT | Yes | No |
 | pytest | Testing | MIT | Yes | No |
 | PostgreSQL | Database | PostgreSQL licence | Yes | No |
@@ -144,6 +144,17 @@ Licences are from memory and **must be verified when each dependency is installe
 | Leaflet, Cytoscape.js | Maps and graphs (later) | BSD-2, MIT | Yes | Map tiles would be a separate decision |
 | Docker Desktop | Containers | Proprietary freeware; free for personal and small-business use | No | Pulls images from the internet |
 | Redis, Celery | Background jobs | **Not in v0.1** (Redis licensing has changed over time; review before adopting) | n/a | n/a |
+
+## 11.1 Decision: use the lite build of the phone-number library
+
+HALO v0.1 uses `phonenumberslite`, not the full `phonenumbers` package (decision DEC-008, 2026-11-14).
+
+- **Included (to verify at install):** parsing, formatting, possible and valid checks, region, and number type, from the core metadata.
+- **Excluded:** carrier, geocoding and timezone metadata.
+- **Why:** with mobile number portability, an original number prefix does not show which carrier a subscriber is on today. Leaving the carrier and geocoding data out makes that misleading output impossible, instead of relying on every future developer not to call it.
+- **Consequence:** v0.1 cannot show a carrier name, a place description or a time zone for a number. The interface shows "Not available" for them.
+- **Not both:** never install the full and lite packages in one environment. They are expected to share one import name (verify at install).
+- **Revisit:** only when reliable, authoritative and legally usable data exists, with its own register entry and a threat-model update.
 
 ## 12. API conventions
 
@@ -159,3 +170,4 @@ Licences are from memory and **must be verified when each dependency is installe
 - [ ] Owner to review evidence limits and allowed types (section 7).
 - [ ] Whether to evaluate row-level security (section 5).
 - [ ] Software licence for HALO.
+- [x] Phone-number library build: lite (section 11.1, DEC-008).
