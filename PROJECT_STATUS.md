@@ -43,6 +43,7 @@ Only verified facts are recorded as facts; everything else is marked as open.
 | Initial database design | `docs/architecture/database-design.md` | Draft v0.1 |
 | Data-source register | `docs/research/data-source-register.md` | Draft v0.1 |
 | Decision register | `docs/architecture/decision-register.md` | Draft v0.1 |
+| Product requirements | `docs/governance/product-requirements.md` | Draft v0.1 |
 
 ## Decisions made
 
@@ -59,7 +60,8 @@ Only verified facts are recorded as facts; everything else is marked as open.
 - [ ] Docker Desktop: the owner reports having signed in. Whether sign-in is mandatory is not verified, so documentation must not claim "no account required". This is separate from Docker's runtime state, which was verified on 2026-11-11 and is re-checked at each environment assessment.
 - [ ] Software licence for HALO not chosen.
 - [ ] Threat model open questions now have proposed defaults in the architecture document (sessions, evidence storage, MFA), awaiting owner review.
-- [ ] Remaining Phase 0 documents: product requirements, development plan.
+- [ ] Remaining Phase 0 documents: development plan.
+- [ ] Product requirements open decisions (section 8 of `product-requirements.md`) await owner review, including whether to add a "Not assessed: insufficient information" risk result.
 - [ ] Database design open decisions (section 10 of `database-design.md`) await owner review.
 - [ ] At install time: verify the phonenumberslite licence and version, and that parsing, validity, region and number type work without the carrier and geocoding data.
 - [ ] South African legal questions are listed in the scope document but not yet researched (POPIA, RICA, Cybercrimes Act, Electronic Communications Act, ICASA numbering rules).
@@ -69,7 +71,7 @@ Only verified facts are recorded as facts; everything else is marked as open.
 
 ## Next steps
 
-1. Write the product requirements and the development plan.
+1. Write the development plan.
 2. Start PostgreSQL with PostGIS via Docker Compose and verify it.
 3. Create the backend virtual environment with Python 3.14.
 4. Start Phase 2: FastAPI skeleton and health-check endpoint.
