@@ -1,0 +1,28 @@
+name: halo
+
+services:
+  db:
+    image: postgis/postgis:18-3.6
+    container_name: halo-db
+    # "no": the database runs only when you start it, which saves RAM on this 7.7 GB machine.
+    restart: "no"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-halo_owner}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: ${POSTGRES_DB:-halo}
+    ports:
+      # Loopback only: reachable from this machine and nowhere else.
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      # PostgreSQL 18+ images use /var/lib/postgresql, not /var/lib/postgresql/data.
+      - halo_pgdata:/var/lib/postgresql
+    # Starting value; measure before changing.
+    mem_limit: 1g
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  halo_pgdata:
