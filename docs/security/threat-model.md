@@ -2,7 +2,7 @@
 
 **Status:** Draft v0.1 (Phase 0)
 **Owner:** Thembinkosi Madiba
-**Last updated:** 2026-11-12
+**Last updated:** 2026-11-15
 
 This model covers HALO v0.1 only: a single organisation on one Windows machine, reachable from that machine only. It lists planned mitigations. **None are implemented yet**, and none should be described as implemented until tested. Cloud deployment, external connectors and institutional integrations need their own model before they are built.
 
@@ -60,6 +60,8 @@ This model covers HALO v0.1 only: a single organisation on one Windows machine, 
 | T16 | HALO used to harass or defame a person or number | Misuse | Risk labels are prioritisation aids, not criminal findings; human review before any external use; audit trail; no automatic dissemination | Review of wording and workflow |
 | T17 | Misleading output treated as fact | Misuse | Every result carries class, source, timestamp, confidence and limitations; "Not available" instead of guesses | Output review tests |
 | T18 | Over-collection of personal data | Misuse, privacy | Data minimisation; retention rules; synthetic data by default | Retention tests |
+| T19 | The application connects as the database owner, which is a superuser in this setup, and so bypasses permissions and the append-only protections | Elevation of privilege | The application uses only the restricted `halo_app` account; `halo_owner` is used only for migrations; a start-up check refuses to run if the connected role is a superuser | Test that the application role is not a superuser, cannot run DDL, and cannot update or delete audit rows. **Finding verified 2026-11-15:** `halo_owner` is a superuser |
+| T20 | Anyone who can run commands inside the database container, or who has Docker access on the host, reaches the database without a password | Information disclosure, elevation of privilege | The image login rules (read from `pg_hba_file_rules`) use `trust` for local and loopback connections inside the container and `scram-sha-256` for all other hosts. On a single-user development machine, Docker access is effectively administrator access, so this is accepted for development only. For any shared or cloud deployment, replace the rules so no connection uses `trust` | **Verified 2026-11-15 (container network):** a wrong password from another container was refused, and the database log named the rule `host all all all scram-sha-256` (pg_hba.conf line 128); the correct password was accepted. **Not yet tested:** a login through the published port from the host (needs a database driver on Windows, planned for M2) |
 
 ## 5. Assumptions and out of scope
 
@@ -74,3 +76,4 @@ This model covers HALO v0.1 only: a single organisation on one Windows machine, 
 - [ ] Decide the session mechanism (server-side sessions or signed tokens).
 - [ ] Decide whether multi-factor authentication is in v0.1 or a later release.
 - [ ] Extend this model before Phase 4 (external sources) and before any cloud deployment.
+- [ ] How the migration that enables PostGIS obtains the privilege it needs, given that the application account must never be a superuser (T19). Not decided.

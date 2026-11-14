@@ -2,7 +2,7 @@
 
 **Status:** Draft v0.1
 **Owner:** Thembinkosi Madiba
-**Last updated:** 2026-11-14
+**Last updated:** 2026-11-15
 
 Each significant decision is recorded with its date, status and reason. A decision is changed by adding a new entry that supersedes the old one, never by editing history.
 
@@ -18,6 +18,8 @@ Each significant decision is recorded with its date, status and reason. A decisi
 | DEC-006 | Defer user-submitted reports to Phase 5 | 2026-11-13 | Accepted |
 | DEC-007 | Session, evidence-storage and MFA defaults as set out in `system-architecture.md` | 2026-11-13 | Proposed, awaiting owner review |
 | DEC-008 | Use the lite build of the phone-number library for v0.1 | 2026-11-14 | Accepted |
+| DEC-009 | Run PostgreSQL from the `postgis/postgis:18-3.6` image (PostgreSQL 18.6); digest recorded | 2026-11-15 | Accepted |
+| DEC-010 | Start the database clean; enable extensions only through migrations (initdb mount) | 2026-11-15 | Accepted and verified |
 
 ## DEC-001: Python 3.14 for HALO
 
@@ -44,3 +46,31 @@ Each significant decision is recorded with its date, status and reason. A decisi
 - **Alternatives considered:** the full package with the carrier functions unused (rejected: the data would still be present); a custom South African range table (rejected for now: it needs the ICASA regulations read first, and the licence terms checked).
 - **Revisit when:** a reliable, authoritative and legally usable source for current carrier or geographic data exists. Any such source needs its own register entry, a threat-model update and a legal check before use.
 - **Verification owed:** at install time, check the licence and NOTICE file, record the exact version, and confirm parsing, validity, region and number type work without the excluded data.
+
+## DEC-009: Database image and version
+
+- **Date:** 2026-11-15
+- **Decision:** Run PostgreSQL from the `postgis/postgis:18-3.6` image through Docker Compose.
+- **Verified facts (command output):** PostgreSQL 18.6 (Debian 18.6-1.pgdg13+2); PostGIS 3.6.4 binaries available; 959 MB on disk; digest `sha256:4a43e3c3e5d55b9208240fc71db543b79c638766280c625a425bd0a2390989c4`.
+- **Tag and digest:** The Compose file uses the rolling tag `18-3.6`. The digest above records the image that was verified. It is recorded for comparison and is **not enforced**. **Proposed:** pin by digest before any shared deployment.
+- **Reasons:** current PostgreSQL major version at the time; the image is maintained by the PostGIS project according to its repository README; no native PostgreSQL install is needed; the PostGIS binaries are present for Phase 6, so the image does not have to be swapped under live data.
+- **Compose settings (verified):** published on `127.0.0.1` only; password required from the git-ignored `.env`; `restart: "no"`; memory ceiling 1 GiB; data volume mounted at `/var/lib/postgresql`, the path used by PostgreSQL 18 images.
+- **Measured cost:** the container used about 65 MiB and the Docker VM about 223 MB with an idle database.
+- **Known limitations:** Docker Desktop is proprietary; the licences of the image contents were **not verified**; the bootstrap role is a superuser (threat T19); local connections inside the container use `trust` (threat T20).
+- **Revisit when:** a PostgreSQL or PostGIS security release requires a new image. Then update the digest deliberately and re-run the baseline verifier and the tests.
+
+## DEC-010: Clean database start; extensions only through migrations
+
+- **Date:** 2026-11-15
+- **Decision (owner, Option B):** Replace the image first-run script so a new database contains only the default `plpgsql` extension. PostGIS and any other extension are enabled only by version-controlled Alembic migrations.
+- **Context:** The first start of the image enabled five extensions without HALO asking for it. Its script `10_postgis.sh` also created a `template_postgis` database.
+- **State before the change (verified):** extensions `fuzzystrmatch`, `plpgsql`, `postgis`, `postgis_tiger_geocoder`, `postgis_topology`; schemas `public` (1 table), `tiger` (34) and `topology` (2), so 37 tables, and 56 relations outside system schemas including views and sequences; `spatial_ref_sys` held 8,500 rows; databases `halo`, `postgres`, `template0`, `template1`, `template_postgis`; one role, `halo_owner`, a superuser.
+- **Options considered:** (A) accept the image defaults; (B) mount an empty folder over the init directory; (C) drop the extra extensions by hand. C was rejected because a rebuilt volume would bring them back.
+- **Implementation:** `docker-compose.yml` mounts `infrastructure/docker/initdb` read-only over `/docker-entrypoint-initdb.d`. The folder holds only a README, which the entrypoint ignores.
+- **Safety before deletion (verified):** the volume was created the same day; one container used it; the repository held no migrations or application code; the reset script counted 0 relations not owned by an extension.
+- **Verification after recreation, 2026-11-15 (verified):** `scripts/verify-database-baseline.ps1` passed all six checks. The start-up log shows `ignoring /docker-entrypoint-initdb.d/README.md` and no PostGIS loading line. A query returned: `spatial_ref_sys` absent, one extension, no `tiger` or `topology` schema. The image digest was unchanged.
+- **Negative control (verified):** run against the old database, the verifier reported four failures (extensions, schemas, 56 relations, extra template database), so it detects the unwanted state.
+- **Reproducibility:** a fresh volume plus the committed Compose file produces the same state with no manual cleanup. `scripts/reset-database.ps1` recreates the volume. It refuses to proceed if the database holds objects that are not part of an extension, and it requires typing DELETE.
+- **Limitations:** the verifier describes the state **before the first migration** and is expected to fail afterwards. It is not a regression test for later work. Verified on restart (2026-11-15): with data already in the volume, the log shows "Skipping initialization", so the image does not re-run its first-run scripts on an existing volume.
+- **Consequences:** a migration must enable PostGIS when the geospatial module needs it. The binaries stay installed in the image. That migration needs a privileged role, which interacts with restricting `halo_owner` (open item).
+- **Revisit when:** the geospatial module starts, or the image is replaced.

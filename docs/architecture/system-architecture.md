@@ -2,7 +2,7 @@
 
 **Status:** Draft v0.1 (Phase 0)
 **Owner:** Thembinkosi Madiba
-**Last updated:** 2026-11-13
+**Last updated:** 2026-11-15
 
 This document describes how HALO v0.1 is structured and why. Items marked **Proposed** await the owner's review. Nothing described here is implemented yet. It should be read with `docs/governance/scope-and-boundaries.md` and `docs/security/threat-model.md`.
 
@@ -126,6 +126,18 @@ Signed tokens (JWT) are not proposed for v0.1. They are harder to revoke, and th
 - **Later:** a Docker Compose file for the whole stack, then a cloud design (HTTPS, private networking, backups, monitoring) with its own threat model.
 - **No external network calls in v0.1.** Core analysis works offline.
 
+## 10.1 Database container and clean start
+
+- **Image:** `postgis/postgis:18-3.6`, PostgreSQL 18.6, PostGIS 3.6.4 binaries, digest `sha256:4a43e3c3e5d55b9208240fc71db543b79c638766280c625a425bd0a2390989c4` (decision DEC-009).
+- **Container settings:** published on `127.0.0.1` only. This was verified from Docker's own port record, and a connection to the machine's Wi-Fi address was refused. The password comes from the git-ignored `.env`. Restart policy is `no`, and the memory ceiling is 1 GiB.
+- **Problem found on first start:** the image's own first-run script enabled `postgis`, `postgis_topology`, `fuzzystrmatch` and `postgis_tiger_geocoder`, created a `template_postgis` database, and added 37 tables (56 relations) plus 8,500 rows of reference data. That conflicts with the rule that schema changes come only from migrations.
+- **Decision (DEC-010):** mount `infrastructure/docker/initdb` read-only over `/docker-entrypoint-initdb.d`. The folder holds only a README, which the image ignores.
+- **Verified result, 2026-11-15:** after recreating the volume, the database has only `plpgsql`, only the `public` schema, no relations, no `template_postgis`, and one role. The PostGIS binaries remain installed, so a later migration can enable the extension.
+- **Reproducibility:** `scripts/verify-database-baseline.ps1` (read-only) checks the starting state. `scripts/reset-database.ps1` (destructive, guarded) recreates the volume and runs the verifier.
+- **Limit:** the verifier covers the pre-migration state only. After the first Alembic migration it is expected to fail, and migration tests take over.
+- **Accounts:** `halo_owner` is the image bootstrap account and a superuser. The application must never use it (threat T19). Local connections inside the container use `trust` (threat T20).
+- **Open:** how the migration that enables PostGIS obtains the privilege it needs while the application account stays non-superuser.
+
 ## 11. Technology choices
 
 Licences are from memory and **must be verified when each dependency is installed**. "Account" and "external data" apply to the running product.
@@ -171,3 +183,4 @@ HALO v0.1 uses `phonenumberslite`, not the full `phonenumbers` package (decision
 - [ ] Whether to evaluate row-level security (section 5).
 - [ ] Software licence for HALO.
 - [x] Phone-number library build: lite (section 11.1, DEC-008).
+- [ ] How the migration that enables PostGIS obtains a privileged role (section 10.1).

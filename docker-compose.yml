@@ -16,6 +16,9 @@ services:
     volumes:
       # PostgreSQL 18+ images use /var/lib/postgresql, not /var/lib/postgresql/data.
       - halo_pgdata:/var/lib/postgresql
+      # Replaces the image first-run script (10_postgis.sh) with this folder, so the database starts without PostGIS or the US tiger geocoder.
+      # PostGIS is enabled later by a migration. See infrastructure/docker/initdb/README.md.
+      - ./infrastructure/docker/initdb:/docker-entrypoint-initdb.d:ro
     # Starting value; measure before changing.
     mem_limit: 1g
     healthcheck:
