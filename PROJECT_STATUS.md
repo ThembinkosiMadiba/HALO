@@ -40,6 +40,7 @@ Only verified facts are recorded as facts; everything else is marked as open.
 | Scope, boundaries and data classification | `docs/governance/scope-and-boundaries.md` | Draft v0.1 |
 | Threat model (v0.1, local deployment) | `docs/security/threat-model.md` | Draft v0.1 |
 | System architecture | `docs/architecture/system-architecture.md` | Draft v0.1 |
+| Initial database design | `docs/architecture/database-design.md` | Draft v0.1 |
 
 ## Decisions made
 
@@ -55,7 +56,8 @@ Only verified facts are recorded as facts; everything else is marked as open.
 - [ ] Docker Desktop: the owner reports having signed in. Whether sign-in is mandatory is not verified, so documentation must not claim "no account required". This is separate from Docker's runtime state, which was verified on 2026-11-11 and is re-checked at each environment assessment.
 - [ ] Software licence for HALO not chosen.
 - [ ] Threat model open questions now have proposed defaults in the architecture document (sessions, evidence storage, MFA), awaiting owner review.
-- [ ] Remaining Phase 0 documents: product requirements, data-source register, initial database design, development plan.
+- [ ] Remaining Phase 0 documents: product requirements, data-source register, development plan.
+- [ ] Database design open decisions (section 10 of `database-design.md`) await owner review.
 - [ ] South African legal questions are listed in the scope document but not yet researched (POPIA, RICA, Cybercrimes Act, Electronic Communications Act, ICASA numbering rules).
 - [ ] The legacy `py.exe` launcher shadows the new one on PATH. Harmless; use `pymanager` and `python3.14` explicitly.
 - [ ] `.vscode/` is git-ignored, so editor settings are not shared. Add an `.editorconfig` later.
@@ -63,8 +65,7 @@ Only verified facts are recorded as facts; everything else is marked as open.
 
 ## Next steps
 
-1. Write the initial database design document, then the data-source register and the development plan.
-2. Write the data-source register and the development plan.
-3. Start PostgreSQL with PostGIS via Docker Compose and verify it.
-4. Create the backend virtual environment with Python 3.14.
-5. Start Phase 2: FastAPI skeleton and health-check endpoint.
+1. Write the data-source register, the product requirements and the development plan.
+2. Start PostgreSQL with PostGIS via Docker Compose and verify it.
+3. Create the backend virtual environment with Python 3.14.
+4. Start Phase 2: FastAPI skeleton and health-check endpoint.
