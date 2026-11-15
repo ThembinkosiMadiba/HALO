@@ -138,6 +138,18 @@ Signed tokens (JWT) are not proposed for v0.1. They are harder to revoke, and th
 - **Accounts:** `halo_owner` is the image bootstrap account and a superuser. The application must never use it (threat T19). Local connections inside the container use `trust` (threat T20).
 - **Open:** how the migration that enables PostGIS obtains the privilege it needs while the application account stays non-superuser.
 
+## 10.2 Backend skeleton (M2)
+
+- **Location:** `backend/app`. Modules: `core/config.py` (settings), `core/logging_config.py` (logging), `api/health.py` (health check) and `main.py` (application factory). `backend/run_dev.py` starts the server.
+- **Settings:** read from `HALO_*` environment variables and the repository `.env`. Safe defaults: environment `production` (API documentation hidden), loopback host, port 1024 or above. A non-loopback `api_host` is rejected at start-up. The database password is a secret type that does not appear in `repr`, `str` or model dumps. The application does not read the `POSTGRES_*` variables.
+- **Logging:** a filter replaces the configured database password in log messages with `[REDACTED]`. Limits: it covers messages only, not exception tracebacks, and it knows only the configured password.
+- **Endpoints:** `GET /api/v1/health` returns `{"status": "ok"}` and nothing else. It is public by design (section 12 allows only health check and login without authentication).
+- **Responses:** `X-Content-Type-Options: nosniff` and `Cache-Control: no-store`. Unhandled errors return a generic 500 and log only the exception type. `/docs`, `/redoc` and `/openapi.json` exist only when the environment is `development`.
+- **Not yet present:** authentication, authorisation, any database use by the application, a CORS policy, TLS (loopback HTTP only), rate limiting and a content-security policy.
+- **Tests:** 15 unit tests (`pytest backend`) and 3 integration tests that need the database container (`pytest backend -m integration`). The integration tests use the database owner account as a documented exception (DEC-013, proposed).
+- **Verified 2026-11-15:** all 18 tests pass. The real server, started in production mode, reported `127.0.0.1:8000` in its start-up log, answered the health check over loopback with the expected headers, returned 404 for `/docs`, and a connection to the machine's Wi-Fi address on port 8000 failed.
+- **Limits of that verification:** a firewall could also have refused the Wi-Fi connection. Windows listener tools showed no listeners for either the API or the database container on this machine, so they were not used as evidence. Development mode was tested in-process only.
+
 ## 11. Technology choices
 
 Licences are from memory and **must be verified when each dependency is installed**. "Account" and "external data" apply to the running product.

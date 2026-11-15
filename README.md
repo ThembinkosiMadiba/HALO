@@ -2,7 +2,7 @@
 
 HALO is an independently developed, open-source research project to build a modular platform for telecommunications-related fraud analysis and digital intelligence, with an initial focus on South Africa.
 
-> **Status: early development (pre-alpha).** No application code exists yet. This repository currently contains project scaffolding only. Nothing here should be used for real investigations.
+> **Status: early development (pre-alpha).** Only a minimal backend skeleton exists (configuration, logging, a health endpoint and tests). HALO cannot analyse phone numbers yet. Nothing here should be used for real investigations.
 
 ## Goals
 

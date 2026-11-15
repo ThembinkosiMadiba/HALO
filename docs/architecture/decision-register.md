@@ -22,6 +22,7 @@ Each significant decision is recorded with its date, status and reason. A decisi
 | DEC-010 | Start the database clean; enable extensions only through migrations (initdb mount) | 2026-11-15 | Accepted and verified |
 | DEC-011 | Short-lived feature branches from M2; documentation-only fixes may go directly to `main` | 2026-11-15 | Accepted |
 | DEC-012 | Backend dependency set (28 pinned packages); SQLAlchemy 2.0 pin proposed after Smart App Control blocked 2.1.8 | 2026-11-15 | Verified; SQLAlchemy part proposed |
+| DEC-013 | Database owner account used only by integration tests until halo_app exists | 2026-11-15 | Proposed; verified in use |
 
 ## DEC-001: Python 3.14 for HALO
 
@@ -104,3 +105,14 @@ Each significant decision is recorded with its date, status and reason. A decisi
 - **Not done:** hash pinning; release-age checks; vulnerability scan; Alembic tested with SQLAlchemy 2.0.57; licences read for SQLAlchemy 2.0.57, Argon2, phonenumberslite and Alembic.
 - **Licence notes:** psycopg and psycopg-binary declare LGPL-3.0-only and certifi declares MPL-2.0. See the dependency register.
 - **Revisit when:** M3 begins, a dependency is added, or Windows accepts the SQLAlchemy 2.1 files.
+
+## DEC-013: Database owner account used only by integration tests (Proposed)
+
+- **Date:** 2026-11-15
+- **Status:** Proposed, awaiting the owner. Verified in use.
+- **Context:** threat T19 says application code must never connect as `halo_owner`, which is a superuser. Until the first migration (M3) creates the restricted `halo_app` account, `halo_owner` is the only database account.
+- **Proposed decision:** `backend/tests/integration/test_database_login.py` may use `halo_owner` to open a connection and run `SELECT` only. No application code uses it. The password is read from the git-ignored `.env` and never printed. The tests are deselected by default.
+- **Verified 2026-11-15:** three integration tests passed from Windows through `127.0.0.1:5432`. The correct password was accepted (server version 18.x), a wrong password was refused, and an unknown user was refused. Both refusals contain "password authentication failed".
+- **Limits:** the tests do not show that `halo_app` is restricted, because it does not exist yet. They need a running Docker container. A connection failure reports only the exception type.
+- **Alternative considered:** create `halo_app` by hand now. Rejected, because role and schema changes come from migrations (DEC-010).
+- **Revisit when:** M3 creates `halo_app`. Then the tests switch to it, and `halo_owner` is used only for migrations.
