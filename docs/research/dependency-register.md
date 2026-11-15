@@ -76,3 +76,4 @@ Each gets its licence read and its behaviour tested on its own branch before use
 - Release ages were not checked, so a very recently published release cannot be ruled out.
 - pip itself has an unaddressed upgrade notice (26.2.2 to 26.3).
 - No automated vulnerability scan yet.
+- pytest reports a `StarletteDeprecationWarning`: Starlette's test client prefers `httpx2` over `httpx`. `httpx2` is an optional extra of FastAPI and is not installed. It needs its licence read and a Smart App Control test before use. The warning is not an error with the pinned versions.

@@ -58,3 +58,15 @@ Do not rewrite history. Use `git revert <commit>` on a new branch, verify, and m
 ## Not yet verified
 
 Whether GitHub branch protection is available for this private repository on the current plan has not been checked. Nothing here relies on it.
+
+## Running the checks
+
+From the repository root, without activating the environment:
+
+- Unit tests: `backend\.venv\Scripts\python.exe -m pytest backend`
+- Integration tests (Docker Desktop running and the database started with `docker compose up -d`): `backend\.venv\Scripts\python.exe -m pytest backend -m integration`
+- Syntax warnings as errors, for one file: `backend\.venv\Scripts\python.exe -W error::SyntaxWarning -m py_compile <file>`
+- Start the API locally, bound to loopback only: `backend\.venv\Scripts\python.exe backend\run_dev.py`
+- Stop the database when finished: `docker compose stop`
+
+Strings that contain Windows paths, including docstrings, must be raw strings (`r"""..."""`). Python 3.14 warns about invalid escape sequences, and a `\r` or `\n` inside a path silently changes the text.
