@@ -21,6 +21,7 @@ Each significant decision is recorded with its date, status and reason. A decisi
 | DEC-009 | Run PostgreSQL from the `postgis/postgis:18-3.6` image (PostgreSQL 18.6); digest recorded | 2026-11-15 | Accepted |
 | DEC-010 | Start the database clean; enable extensions only through migrations (initdb mount) | 2026-11-15 | Accepted and verified |
 | DEC-011 | Short-lived feature branches from M2; documentation-only fixes may go directly to `main` | 2026-11-15 | Accepted |
+| DEC-012 | Backend dependency set (28 pinned packages); SQLAlchemy 2.0 pin proposed after Smart App Control blocked 2.1.8 | 2026-11-15 | Verified; SQLAlchemy part proposed |
 
 ## DEC-001: Python 3.14 for HALO
 
@@ -87,3 +88,19 @@ Each significant decision is recorded with its date, status and reason. A decisi
 - **Merge method:** **Proposed**, not decided: local `git merge --no-ff`, then push. Revisit when automated checks run on GitHub.
 - **Not verified:** whether GitHub branch protection is available for this private repository. Nothing relies on it.
 - **Revisit when:** automated checks run on GitHub, or a second contributor joins.
+
+## DEC-012: Backend dependency set and the Smart App Control finding
+
+- **Date:** 2026-11-15
+- **Status:** the dependency set is **verified**. The SQLAlchemy part is **Proposed** and awaits the owner.
+- **Decision (verified):** the backend environment uses Python 3.14.10 and the 28 packages pinned in `backend/requirements.txt`, installed with `--only-binary=:all:`. Details and declared licences: `docs/research/dependency-register.md`.
+- **Verified results:** `pip check` clean; installed set equals the file; all modules import; `psycopg` uses its binary implementation. A rebuild from the file reproduced the environment, using pip cache.
+- **Finding: Smart App Control blocked a compiled file.** SQLAlchemy 2.1.8 installed, but `import sqlalchemy` failed with "An Application Control policy has blocked this file" for `sqlalchemy/sql/_util_cy.cp314-win_amd64.pyd`. Code Integrity events 3077 and 3033, logged 2026-11-15 11:37:35, say the file did not meet the Enterprise signing level requirements. Other compiled files (`pydantic_core`, `psycopg_binary`) loaded normally. Both the blocked file and `pydantic_core` are reported as unsigned, so signing does not explain the difference. The cause is not established.
+- **Test in a throwaway environment (verified):** SQLAlchemy 2.0.57 imports and runs a query, reports compiled extensions as not in use, and Windows blocked `cyextension/immutabledict.cp314-win_amd64.pyd`. The library fell back to pure Python. Argon2 (with cffi bindings), MarkupSafe and greenlet loaded, and Argon2 produced an argon2id hash.
+- **Proposed:** pin SQLAlchemy to `>=2.0,<2.1` (2.0.57 verified) when it is first needed in M3. Do not install SQLAlchemy in M2, which needs only `psycopg` for its connection test. Do not use 2.1.x until Windows accepts its compiled file or a reason appears.
+- **Standing rule:** Smart App Control and similar protections are not to be turned off or excluded to make a package work.
+- **Options considered:** (A) SQLAlchemy 2.1.8 built from source with the extensions disabled; (B) an older 2.0.x wheel; (C) defer SQLAlchemy to M3. C was chosen for M2 and B was tested for M3. A was not tested, because it would run a package build script on this machine.
+- **Consequence for deployment:** any Windows machine enforcing Smart App Control or a similar policy may block compiled extensions. The installation guide must say so.
+- **Not done:** hash pinning; release-age checks; vulnerability scan; Alembic tested with SQLAlchemy 2.0.57; licences read for SQLAlchemy 2.0.57, Argon2, phonenumberslite and Alembic.
+- **Licence notes:** psycopg and psycopg-binary declare LGPL-3.0-only and certifi declares MPL-2.0. See the dependency register.
+- **Revisit when:** M3 begins, a dependency is added, or Windows accepts the SQLAlchemy 2.1 files.
