@@ -4,8 +4,8 @@ Resume point for development sessions. Update at the end of every milestone.
 Only verified facts are recorded as facts; everything else is marked as open.
 
 **Last updated:** 2026-11-15
-**Current phase:** Phase 0 documents are drafted. Milestone M1 (database) is complete except an SQL login through the published port from Windows, which needs a database driver (M2).
-**Next milestone:** M2 (backend foundation), after the open decisions that block it are answered
+**Current phase:** M2 (backend foundation) in progress on branch chore/backend-environment. Phase 0 documents and M1 are complete, except an SQL login from Windows through the published port, which needs the driver now installed.
+**Next milestone:** Finish M2: backend skeleton, configuration, logging, health endpoint, first tests, and a database connection test from Windows
 
 ## Environment (verified from command output)
 
@@ -23,6 +23,7 @@ Only verified facts are recorded as facts; everything else is marked as open.
 | WSL | 3.0.5.0, kernel 6.18.58.1-1; `.wslconfig` caps memory at 3 GB, 4 processors, 2 GB swap |
 | Docker Desktop | 4.99.0, engine 29.9.3, WSL 2 backend; `hello-world` ran; engine memory about 2.84 GiB, so the cap works. Re-checked 2026-11-13 after the owner signed in: engine 29.9.3 reachable, memory 3051933696 bytes. |
 | Memory observations | Free RAM was about 0.7 to 0.9 GB with Firefox open and 2.1 GB with it closed. The Docker VM (`vmmemWSL`) used 223 MB with an idle database and the container 65 MB. Close Firefox before heavy Docker work. |
+| Backend environment | Python 3.14.10 virtual environment at `backend/.venv` (git-ignored), 28 packages pinned in `backend/requirements.txt`, installed with `--only-binary=:all:`. `pip check` clean; all modules import; psycopg uses its binary implementation. Run tools by full path (for example `backend\.venv\Scripts\python.exe`); the environment is not activated. SQLAlchemy is deliberately not installed (DEC-012). |
 | PostgreSQL | **18.6 in a container** (`halo-db`, image `postgis/postgis:18-3.6`, digest `sha256:4a43e3c3e5d55b9208240fc71db543b79c638766280c625a425bd0a2390989c4`), data in volume `halo_halo_pgdata`. Published on `127.0.0.1:5432` only (Docker port record, and a refused connection to the Wi-Fi address). Clean baseline verified 2026-11-15: extension `plpgsql` only, no PostGIS or tiger objects; PostGIS 3.6.4 binaries present but not enabled. Start with `docker compose up -d`, stop with `docker compose stop`. |
 
 ## Repository
@@ -48,6 +49,7 @@ Only verified facts are recorded as facts; everything else is marked as open.
 | Product requirements | `docs/governance/product-requirements.md` | Draft v0.1 |
 | Development plan | `docs/governance/development-plan.md` | Draft v0.1 |
 | Contributing and Git workflow | `CONTRIBUTING.md` | Draft v0.1 |
+| Dependency register | `docs/research/dependency-register.md` | Draft v0.1 |
 
 ## Decisions made
 
@@ -61,6 +63,7 @@ Only verified facts are recorded as facts; everything else is marked as open.
 8. Owner decision 2026-11-15: replace the image first-run script so the database starts clean; extensions are enabled only by version-controlled migrations (DEC-010).
 9. Database image `postgis/postgis:18-3.6`, PostgreSQL 18.6, digest recorded (DEC-009). The Compose file uses the tag; the digest is recorded and not enforced.
 10. Owner decision 2026-11-15: from M2 onward use short-lived feature branches merged into `main` only after tests pass and the work is verified; documentation-only fixes (`docs/`, `README.md`, `CONTRIBUTING.md`, `PROJECT_STATUS.md`) may go directly to `main` (DEC-011).
+11. Proposed 2026-11-15, awaiting the owner (DEC-012): pin SQLAlchemy to `>=2.0,<2.1` when first needed in M3, because Windows Smart App Control blocked a compiled file in 2.1.8; do not install SQLAlchemy in M2; never weaken Smart App Control.
 
 ## Open items
 
@@ -78,6 +81,10 @@ Only verified facts are recorded as facts; everything else is marked as open.
 - [ ] `.gitignore` lost its trailing newline on 2026-11-14 for an unknown reason and was restored. If it recurs, check VS Code settings.
 - [ ] Licences of the database image contents not verified.
 - [ ] Merge method for branches (local `--no-ff` merge is proposed) and whether GitHub branch protection is available for this private repository are not decided or verified.
+- [ ] Smart App Control is enforcing on this machine and blocked a SQLAlchemy 2.1.8 compiled file. Its cause is not established, and the installation guide must mention it.
+- [ ] Dependencies: no hash pinning, no release-age check, no vulnerability scan; pip upgrade notice (26.2.2 to 26.3) unaddressed; the environment rebuild used pip cache.
+- [ ] Licence review: psycopg and psycopg-binary declare LGPL-3.0-only (the binary wheel bundles C libraries, not checked); certifi declares MPL-2.0. Packages planned for M3 and later have not had their licences read.
+- [ ] Alembic is untested with SQLAlchemy 2.0.57.
 - [ ] South African legal questions are listed in the scope document but not yet researched (POPIA, RICA, Cybercrimes Act, Electronic Communications Act, ICASA numbering rules).
 - [ ] The legacy `py.exe` launcher shadows the new one on PATH. Harmless; use `pymanager` and `python3.14` explicitly.
 - [ ] `.vscode/` is git-ignored, so editor settings are not shared. Add an `.editorconfig` later.
@@ -85,6 +92,7 @@ Only verified facts are recorded as facts; everything else is marked as open.
 
 ## Next steps
 
-1. Answer the open decisions that block M3: MFA timing, email uniqueness, one role per user, the seeded system organisation, keeping submitted_text, trigger-based append-only protection.
-2. M2: create the backend virtual environment with Python 3.14 and install pinned dependencies, checking each licence at install.
-3. Build the backend skeleton and health endpoint with tests, including a database connection test from Windows through the published port.
+1. Owner: accept or change the SQLAlchemy proposal in DEC-012.
+2. Merge branch `chore/backend-environment` into `main` after its checks (CONTRIBUTING.md).
+3. New branch for the backend skeleton: configuration, logging, health endpoint, first tests, and a database connection test from Windows through the published port.
+4. Answer the open decisions that block M3: MFA timing, email uniqueness, one role per user, the seeded system organisation, keeping submitted_text, trigger-based append-only protection.
