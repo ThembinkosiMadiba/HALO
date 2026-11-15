@@ -20,6 +20,7 @@ Each significant decision is recorded with its date, status and reason. A decisi
 | DEC-008 | Use the lite build of the phone-number library for v0.1 | 2026-11-14 | Accepted |
 | DEC-009 | Run PostgreSQL from the `postgis/postgis:18-3.6` image (PostgreSQL 18.6); digest recorded | 2026-11-15 | Accepted |
 | DEC-010 | Start the database clean; enable extensions only through migrations (initdb mount) | 2026-11-15 | Accepted and verified |
+| DEC-011 | Short-lived feature branches from M2; documentation-only fixes may go directly to `main` | 2026-11-15 | Accepted |
 
 ## DEC-001: Python 3.14 for HALO
 
@@ -74,3 +75,15 @@ Each significant decision is recorded with its date, status and reason. A decisi
 - **Limitations:** the verifier describes the state **before the first migration** and is expected to fail afterwards. It is not a regression test for later work. Verified on restart (2026-11-15): with data already in the volume, the log shows "Skipping initialization", so the image does not re-run its first-run scripts on an existing volume.
 - **Consequences:** a migration must enable PostGIS when the geospatial module needs it. The binaries stay installed in the image. That migration needs a privileged role, which interacts with restricting `halo_owner` (open item).
 - **Revisit when:** the geospatial module starts, or the image is replaced.
+
+## DEC-011: Short-lived feature branches from M2
+
+- **Date:** 2026-11-15
+- **Decision (owner):** From M2 onward, each development task is done on a short-lived feature branch. A branch is merged into `main` only after the relevant tests pass and the implementation has been verified. Documentation-only fixes may still go directly to `main`.
+- **Context:** Up to M1 every commit went straight to `main`. Several mistakes in this project were found only after committing (an empty file committed, a commit message describing content it did not contain). From M2 there is code, and `main` should stay stable.
+- **Documentation-only means:** files under `docs/`, and `README.md`, `CONTRIBUTING.md` and `PROJECT_STATUS.md`. Anything else, including scripts, Compose, ignore rules and dependency files, needs a branch.
+- **Before the automated test suite exists:** "tests pass" means the verification checks listed for the task were run and their output recorded.
+- **Details:** `CONTRIBUTING.md`.
+- **Merge method:** **Proposed**, not decided: local `git merge --no-ff`, then push. Revisit when automated checks run on GitHub.
+- **Not verified:** whether GitHub branch protection is available for this private repository. Nothing relies on it.
+- **Revisit when:** automated checks run on GitHub, or a second contributor joins.

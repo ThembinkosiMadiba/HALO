@@ -2,7 +2,7 @@
 
 **Status:** Draft v0.1 (Phase 0)
 **Owner:** Thembinkosi Madiba
-**Last updated:** 2026-11-14
+**Last updated:** 2026-11-15
 
 This plan describes how HALO v0.1 will be built, in what order, and how each step is verified. It contains no time estimates, because none have been measured. Progress is judged by exit criteria. Items marked **Proposed** await the owner's decision.
 
@@ -72,7 +72,7 @@ Limits to state in the interface: HALO cannot verify that cited sources are inde
 
 ## 6. Working practices
 
-- **Branches (Proposed):** from M2, work happens on short feature branches merged into `main`. Documentation fixes may go straight to `main`.
+- **Branches (accepted 2026-11-15, DEC-011):** from M2, each development task is done on a short-lived feature branch and merged into `main` only after its tests pass and the work is verified. Documentation-only changes may go straight to `main`. Details are in `CONTRIBUTING.md`.
 - **Commits:** small, with the conventional prefixes already in use (`docs:`, `chore:`, `feat:`, `fix:`, `test:`).
 - **Verification gate:** before every `git add`, check that the file is saved and its path in `git status` is the expected one. Commit only after the expected check output has been confirmed.
 - **Changes by script:** scripted edits must match each pattern exactly once and write nothing otherwise.
@@ -104,5 +104,5 @@ Limits to state in the interface: HALO cannot verify that cited sources are inde
 
 - [ ] Accept the vertical-slice ordering in section 1?
 - [ ] Accept the proposed v0.1 risk rules and starting thresholds in section 4, including "Not assessed: insufficient information"?
-- [ ] Accept feature branches from M2?
+- [x] Feature branches from M2: accepted by the owner on 2026-11-15 (DEC-011).
 - [ ] Is multi-factor authentication part of v0.1, or a later release?

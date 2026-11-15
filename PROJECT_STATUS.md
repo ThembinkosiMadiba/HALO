@@ -47,6 +47,7 @@ Only verified facts are recorded as facts; everything else is marked as open.
 | Decision register | `docs/architecture/decision-register.md` | Draft v0.1 |
 | Product requirements | `docs/governance/product-requirements.md` | Draft v0.1 |
 | Development plan | `docs/governance/development-plan.md` | Draft v0.1 |
+| Contributing and Git workflow | `CONTRIBUTING.md` | Draft v0.1 |
 
 ## Decisions made
 
@@ -59,6 +60,7 @@ Only verified facts are recorded as facts; everything else is marked as open.
 7. Confirmed by the owner (2026-11-14): use the phonenumberslite build for v0.1; carrier and geocoding enrichment are deferred until reliable, authoritative, legally usable sources exist. See decision register DEC-008.
 8. Owner decision 2026-11-15: replace the image first-run script so the database starts clean; extensions are enabled only by version-controlled migrations (DEC-010).
 9. Database image `postgis/postgis:18-3.6`, PostgreSQL 18.6, digest recorded (DEC-009). The Compose file uses the tag; the digest is recorded and not enforced.
+10. Owner decision 2026-11-15: from M2 onward use short-lived feature branches merged into `main` only after tests pass and the work is verified; documentation-only fixes (`docs/`, `README.md`, `CONTRIBUTING.md`, `PROJECT_STATUS.md`) may go directly to `main` (DEC-011).
 
 ## Open items
 
@@ -75,6 +77,7 @@ Only verified facts are recorded as facts; everything else is marked as open.
 - [ ] How the migration that enables PostGIS gets the privilege it needs while the application account stays non-superuser (T19).
 - [ ] `.gitignore` lost its trailing newline on 2026-11-14 for an unknown reason and was restored. If it recurs, check VS Code settings.
 - [ ] Licences of the database image contents not verified.
+- [ ] Merge method for branches (local `--no-ff` merge is proposed) and whether GitHub branch protection is available for this private repository are not decided or verified.
 - [ ] South African legal questions are listed in the scope document but not yet researched (POPIA, RICA, Cybercrimes Act, Electronic Communications Act, ICASA numbering rules).
 - [ ] The legacy `py.exe` launcher shadows the new one on PATH. Harmless; use `pymanager` and `python3.14` explicitly.
 - [ ] `.vscode/` is git-ignored, so editor settings are not shared. Add an `.editorconfig` later.
@@ -82,6 +85,6 @@ Only verified facts are recorded as facts; everything else is marked as open.
 
 ## Next steps
 
-1. Answer the open decisions that block later milestones: feature branches (M2); MFA timing, email uniqueness, one role per user, the seeded system organisation, keeping submitted_text, trigger-based append-only protection (M3).
+1. Answer the open decisions that block M3: MFA timing, email uniqueness, one role per user, the seeded system organisation, keeping submitted_text, trigger-based append-only protection.
 2. M2: create the backend virtual environment with Python 3.14 and install pinned dependencies, checking each licence at install.
 3. Build the backend skeleton and health endpoint with tests, including a database connection test from Windows through the published port.
