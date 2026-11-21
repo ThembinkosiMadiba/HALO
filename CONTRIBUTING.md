@@ -70,3 +70,10 @@ From the repository root, without activating the environment:
 - Stop the database when finished: `docker compose stop`
 
 Strings that contain Windows paths, including docstrings, must be raw strings (`r"""..."""`). Python 3.14 warns about invalid escape sequences, and a `\r` or `\n` inside a path silently changes the text.
+
+## Changing a GitHub Actions workflow
+
+- Parse the changed file locally before pushing. Create a throwaway environment under `%TEMP%`, install PyYAML there (it is not a project dependency), load the workflow with `yaml.safe_load`, and run a negative control: a deliberately broken snippet that must fail to parse. PyYAML confirms syntax only. GitHub applies further rules.
+- Pin third-party actions to full commit SHAs read from the official repository with `git ls-remote`, and check each SHA against that repository's tags.
+- Push the branch, read the run on the repository's Actions tab, and merge only when it is green. A workflow with a syntax error starts no job.
+- Every push to any branch runs the workflow, including documentation-only pushes to `main`.

@@ -24,7 +24,7 @@ Each significant decision is recorded with its date, status and reason. A decisi
 | DEC-012 | Backend dependency set (28 pinned packages); SQLAlchemy 2.0 pin proposed after Smart App Control blocked 2.1.8 | 2026-11-15 | Verified; SQLAlchemy part proposed |
 | DEC-013 | Database owner account used only by integration tests until halo_app exists | 2026-11-15 | Proposed; verified in use |
 | DEC-014 | Smart App Control blocked the database driver library once (finding, no decision) | 2026-11-21 | Recorded; cause unknown |
-| DEC-015 | Run the unit tests on GitHub Actions (pinned actions, Linux runner) | 2026-11-21 | Proposed; not yet run on GitHub |
+| DEC-015 | Run the unit tests on GitHub Actions (pinned actions, Linux runner) | 2026-11-21 | Proposed; verified working on GitHub |
 
 ## DEC-001: Python 3.14 for HALO
 
@@ -133,14 +133,18 @@ Each significant decision is recorded with its date, status and reason. A decisi
 - **Mitigation in place:** the same unit tests run in Linux continuous integration (DEC-015), which is independent of this problem. Block events are recorded.
 - **Revisit when:** the block recurs, or before M3.
 
-## DEC-015: Run the unit tests on GitHub Actions (Proposed; written, not yet run on GitHub)
+## DEC-015: Run the unit tests on GitHub Actions (Proposed; verified working)
 
 - **Date:** 2026-11-21
-- **Status:** Proposed. The workflow is committed on branch `ci/unit-tests` and has not run on GitHub yet.
+- **Status:** Proposed, awaiting the owner's explicit acceptance. The workflow is merged into `main` and verified working on GitHub (see the results below).
 - **Workflow:** `.github/workflows/backend-tests.yml`. It runs on every push to any branch, on `ubuntu-latest`, with a 10-minute timeout. Steps: check out, set up Python 3.14, install `backend/requirements.txt` with `--only-binary=:all:`, compile all Python files with syntax warnings as errors, and run the unit tests.
 - **Security choices:** read-only repository permission; credentials not persisted; no secrets; no database; no integration tests; third-party actions pinned to commit SHAs read from the official repositories on 2026-11-21: `actions/checkout` at the commit behind tag v6, and `actions/setup-python` at v6.1.0. Both SHAs were re-checked against the repositories' tags. Tags `v7` exist for both actions and were not evaluated.
 - **Local checks (verified):** the compile check exits 0 on the real code and non-zero on a deliberately bad escape sequence; the unit tests pass locally.
-- **Limits:** a Linux runner cannot detect Windows-only problems such as Smart App Control. It does not run the integration tests. The YAML syntax can be checked only by GitHub.
+- **Limits:** a Linux runner cannot detect Windows-only problems such as Smart App Control. It does not run the integration tests. The YAML syntax is checked locally with PyYAML before pushing (see the lesson below).
 - **Cost and billing (as reported by the owner):** GitHub Free plan; no payment method; Actions budget $0.00; $0.28 of gross metered usage fully covered by included discounts. The meaning of "100% usage blocked" on the billing page is unclear. Third-party sources report 2,000 free Linux minutes per month for private repositories on the Free plan. This was not confirmed on GitHub's own page.
-- **Not verified:** the first run on GitHub; whether `psycopg-binary` has a Linux wheel for Python 3.14 (a failure at the install step would show it).
-- **Revisit when:** the first run completes, the allowance runs out, or v7 of the actions is evaluated.
+- **Previously not verified, now verified:** the first successful run on GitHub, and the Linux wheel for `psycopg-binary` (see the results below).
+- **Results on GitHub (reported by the owner with screenshots, 2026-11-21):** run #1 (commit 318ebf7) was rejected as an invalid workflow file ("error in your yaml syntax on line 35") and started no job. Run #2 (commit bce2bb3, branch ci/unit-tests) and run #3 (merge commit fe189d3, branch main) both succeeded, each with a job time of about 20 s. The job log shows Python 3.14.10 on the Linux runner, all five steps passing and `15 passed, 3 deselected, 1 warning`.
+- **Verified by those runs:** all 28 pinned packages installed with `--only-binary=:all:` on Linux, so prebuilt Linux wheels exist for Python 3.14, including `psycopg-binary`; the compile check and the 15 unit tests pass on Linux; jobs run on the included allowance although the billing page says "100% usage blocked".
+- **Mistake and lesson:** the install step had an unquoted `: ` inside the command (`--only-binary=:all: -r`), which is invalid YAML. An earlier note in this record wrongly said GitHub was the only place to check YAML syntax. The fix is a `run: |` block scalar (commit bce2bb3). From now on a changed workflow is parsed locally with PyYAML in a throwaway environment, with a negative control (see CONTRIBUTING.md). PyYAML 6.0.4 parsed the fixed file (5 steps) and rejected the broken line with "mapping values are not allowed here". It declares the MIT licence and is not a project dependency.
+- **Still unknown:** how many Actions minutes the runs used (billing rounding was not checked); what produced the earlier $0.28 of gross usage; whether 2,000 free minutes per month applies (only third-party sources were seen); the v7 tags of both actions.
+- **Revisit when:** the allowance runs out, a dependency scan or integration tests are added to CI, or v7 of the actions is evaluated.

@@ -13,6 +13,7 @@ Every dependency is recorded with its version, declared licence and role. Licenc
 - 28 packages pinned to exact versions in `backend/requirements.txt`.
 - Verified: `pip check` reports no broken requirements; the installed set equals the file; every module imports. A rebuild from the file used pip's cache, so it was not a fresh network resolution.
 - Smart App Control is enforcing on the development machine. Only two packages here contain compiled extensions (`psycopg-binary` and `pydantic-core`), and both normally load, but Smart App Control blocked the unsigned libpq library bundled in `psycopg-binary` once on 2026-11-19 (DEC-014). See also DEC-012.
+- Linux: on 2026-11-21 GitHub Actions installed all 28 pinned packages with `--only-binary=:all:` on a Linux runner using Python 3.14.10, so prebuilt Linux wheels exist for each. Windows wheels were verified earlier on the development machine.
 
 ## Packages
 

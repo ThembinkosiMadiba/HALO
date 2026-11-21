@@ -150,14 +150,14 @@ Signed tokens (JWT) are not proposed for v0.1. They are harder to revoke, and th
 - **Verified 2026-11-15:** all 18 tests pass. The real server, started in production mode, reported `127.0.0.1:8000` in its start-up log, answered the health check over loopback with the expected headers, returned 404 for `/docs`, and a connection to the machine's Wi-Fi address on port 8000 failed.
 - **Limits of that verification:** a firewall could also have refused the Wi-Fi connection. Windows listener tools showed no listeners for either the API or the database container on this machine, so they were not used as evidence. Development mode was tested in-process only.
 
-## 10.3 Continuous integration (written, not yet run on GitHub)
+## 10.3 Continuous integration
 
 - **Workflow:** `.github/workflows/backend-tests.yml`, decision DEC-015 (proposed).
 - **What it does:** on every push, on a Linux runner, installs the pinned dependencies from prebuilt wheels, compiles every Python file with syntax warnings treated as errors, and runs the 15 unit tests.
 - **What it does not do:** run the integration tests (they need the database container), test on Windows, scan dependencies, or check licences.
 - **Security:** read-only token, no persisted credentials, no secrets, third-party actions pinned to commit SHAs.
 - **Why it matters here:** the local machine enforces Smart App Control, which blocked compiled libraries twice (DEC-012 and DEC-014). A Linux run is independent of that.
-- **Status:** the first run on GitHub has not happened. This section is updated when it has.
+- **Status (2026-11-21):** verified. Run #2 (branch) and run #3 (main, after the merge) succeeded in about 20 s each on a Linux runner with Python 3.14.10: all 28 packages installed from prebuilt wheels, the compile check passed and 15 unit tests passed. Run #1 failed on a YAML syntax error and started no job. Not covered: Windows-specific problems and the integration tests.
 
 ## 11. Technology choices
 

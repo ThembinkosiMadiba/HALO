@@ -4,7 +4,7 @@ Resume point for development sessions. Update at the end of every milestone.
 Only verified facts are recorded as facts; everything else is marked as open.
 
 **Last updated:** 2026-11-21
-**Current phase:** M2 (backend foundation) in progress. The backend skeleton is merged into main. The CI workflow is committed on branch ci/unit-tests and has not run on GitHub yet. The frontend scaffold remains. Phase 0 documents and M1 are complete.
+**Current phase:** M2 (backend foundation) in progress. The backend skeleton and the CI workflow are merged into main, and CI is verified on GitHub. The frontend scaffold remains for M2. Phase 0 documents and M1 are complete.
 **Next milestone:** Finish M2 (frontend scaffold and CI), then M3 after the open decisions that block it are answered
 
 ## Environment (verified from command output)
@@ -25,7 +25,7 @@ Only verified facts are recorded as facts; everything else is marked as open.
 | Memory observations | Free RAM was about 0.7 to 0.9 GB with Firefox open and 2.1 GB with it closed. The Docker VM (`vmmemWSL`) used 223 MB with an idle database and the container 65 MB. Close Firefox before heavy Docker work. |
 | Backend environment | Python 3.14.10 virtual environment at `backend/.venv` (git-ignored), 28 packages pinned in `backend/requirements.txt`, installed with `--only-binary=:all:`. `pip check` clean; all modules import; psycopg uses its binary implementation. Run tools by full path (for example `backend\.venv\Scripts\python.exe`); the environment is not activated. SQLAlchemy is deliberately not installed (DEC-012). |
 | Backend skeleton | `backend/app` (config, logging, health endpoint, application factory) with 15 unit tests and 3 integration tests, all passing on 2026-11-15. Start the API with `backend\.venv\Scripts\python.exe backend\run_dev.py` (loopback only). Details: architecture section 10.2. |
-| GitHub account and Actions | Owner-reported 2026-11-21: GitHub Free plan, no payment method, Actions budget $0.00, $0.28 gross usage fully covered by included discounts, billing page says "100% usage blocked" (meaning unclear). The workflow `.github/workflows/backend-tests.yml` is committed on branch ci/unit-tests and has not run on GitHub. |
+| GitHub account and Actions | Owner-reported 2026-11-21: GitHub Free plan, no payment method, Actions budget $0.00, $0.28 gross usage fully covered by included discounts. The billing page says "100% usage blocked", yet jobs run. Workflow `.github/workflows/backend-tests.yml` is on main. Runs: #1 failed on a YAML syntax error (no job started); #2 (branch) and #3 (main) succeeded, about 20 s each. Minutes consumed are not known. |
 | PostgreSQL | **18.6 in a container** (`halo-db`, image `postgis/postgis:18-3.6`, digest `sha256:4a43e3c3e5d55b9208240fc71db543b79c638766280c625a425bd0a2390989c4`), data in volume `halo_halo_pgdata`. Published on `127.0.0.1:5432` only (Docker port record, and a refused connection to the Wi-Fi address). Clean baseline verified 2026-11-15: extension `plpgsql` only, no PostGIS or tiger objects; PostGIS 3.6.4 binaries present but not enabled. Start with `docker compose up -d`, stop with `docker compose stop`. |
 
 ## Repository
@@ -69,7 +69,7 @@ Only verified facts are recorded as facts; everything else is marked as open.
 11. Proposed 2026-11-15, awaiting the owner (DEC-012): pin SQLAlchemy to `>=2.0,<2.1` when first needed in M3, because Windows Smart App Control blocked a compiled file in 2.1.8; do not install SQLAlchemy in M2; never weaken Smart App Control.
 12. Proposed 2026-11-15, awaiting the owner (DEC-013): the integration tests may use the database owner account until `halo_app` exists in M3; no application code may use it.
 13. Recorded 2026-11-21 (DEC-014, a finding with no decision): Smart App Control blocked the database driver's libpq library once; cause unknown; the control stays on, with no exclusions.
-14. Proposed 2026-11-21, awaiting the owner (DEC-015): run the unit tests on GitHub Actions with pinned actions on a Linux runner.
+14. Proposed 2026-11-21 (DEC-015) and verified working on GitHub: run the unit tests on GitHub Actions with pinned actions on a Linux runner. Awaiting the owner's explicit acceptance.
 
 ## Open items
 
@@ -92,10 +92,10 @@ Only verified facts are recorded as facts; everything else is marked as open.
 - [ ] Licence review: psycopg and psycopg-binary declare LGPL-3.0-only (the binary wheel bundles C libraries, not checked); certifi declares MPL-2.0. Packages planned for M3 and later have not had their licences read.
 - [ ] Alembic is untested with SQLAlchemy 2.0.57.
 - [ ] Owner replies pending: the SQLAlchemy proposal (DEC-012) and the integration-test account exception (DEC-013).
-- [ ] The CI workflow has not run on GitHub. Unverified: the first run, whether `psycopg-binary` has a Linux wheel for Python 3.14, the YAML syntax, and the v7 tags of both actions (not evaluated).
+- [x] CI verified on GitHub 2026-11-21: runs #2 and #3 passed, and prebuilt Linux wheels exist for all 28 packages. Not evaluated: the v7 tags of both actions.
 - [ ] Smart App Control blocked the database driver's libpq library once (2026-11-19) and not in four later runs. Cause unknown. If it recurs it affects the integration tests and milestone M3. Options are listed in DEC-014 and none has been researched or chosen.
 - [ ] Owner to say whether Windows restarted between 2026-11-15 and the 2026-11-19 failure (the terminal showed "History restored").
-- [ ] The GitHub billing page reports "100% usage blocked" and $0.28 of gross usage. What produced the usage and what "blocked" means have not been established.
+- [ ] The GitHub billing page says "100% usage blocked", yet jobs run. $0.28 of gross usage was recorded before any job and its source is unknown. Minutes used by the three runs are not known (the run page has a Usage link).
 - [ ] `.env.example` does not list the `HALO_*` settings (environment, log level, API host and port, application database account). Add them when the application first connects to the database (M3).
 - [ ] On this machine `Get-NetTCPConnection` and `netstat` show no listeners, even for the running API, so they cannot verify bind addresses. The evidence used instead is in the threat model verification log.
 - [ ] The API was run as a real server only in production mode. Development mode (API docs on) is tested in-process only.
@@ -108,8 +108,8 @@ Only verified facts are recorded as facts; everything else is marked as open.
 
 ## Next steps
 
-1. Push branch `ci/unit-tests`, read the first GitHub Actions run, fix any problem on the branch, and merge only when the run is green.
-2. Owner: answer the pending proposals (DEC-012, DEC-013, DEC-015) and the open decisions that block M3: MFA timing, email uniqueness, one role per user, the seeded system organisation, keeping submitted_text, trigger-based append-only protection.
-3. Decide how to handle the driver-library risk (DEC-014) before M3, on a throwaway environment.
-4. Frontend scaffold on its own branch. Test the Node tooling on a throwaway project first, because Smart App Control may block native binaries there too.
-5. M3: first migration and authentication.
+1. Owner: answer the pending proposals (DEC-012, DEC-013, DEC-015) and the open decisions that block M3: MFA timing, email uniqueness, one role per user, the seeded system organisation, keeping submitted_text, trigger-based append-only protection.
+2. Research the database-driver options on a throwaway environment before M3 (DEC-014): licence, behaviour with Smart App Control, and compatibility with SQLAlchemy 2.0.57.
+3. Frontend scaffold on its own branch. Test the Node tooling on a throwaway project first, because Smart App Control may block native binaries there too.
+4. Possible later CI additions, each needing its own decision: a dependency vulnerability scan, and integration tests with a database service container.
+5. M3: first migration and authentication, once its decisions are made.
