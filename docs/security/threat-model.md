@@ -2,7 +2,7 @@
 
 **Status:** Draft v0.1 (Phase 0)
 **Owner:** Thembinkosi Madiba
-**Last updated:** 2026-11-15
+**Last updated:** 2026-11-21
 
 This model covers HALO v0.1 only: a single organisation on one Windows machine, reachable from that machine only. It lists planned mitigations. **None are implemented yet**, and none should be described as implemented until tested. Cloud deployment, external connectors and institutional integrations need their own model before they are built.
 
@@ -62,6 +62,7 @@ This model covers HALO v0.1 only: a single organisation on one Windows machine, 
 | T18 | Over-collection of personal data | Misuse, privacy | Data minimisation; retention rules; synthetic data by default | Retention tests |
 | T19 | The application connects as the database owner, which is a superuser in this setup, and so bypasses permissions and the append-only protections | Elevation of privilege | The application uses only the restricted `halo_app` account; `halo_owner` is used only for migrations; a start-up check refuses to run if the connected role is a superuser | Test that the application role is not a superuser, cannot run DDL, and cannot update or delete audit rows. **Finding verified 2026-11-15:** `halo_owner` is a superuser |
 | T20 | Anyone who can run commands inside the database container, or who has Docker access on the host, reaches the database without a password | Information disclosure, elevation of privilege | The image login rules (read from `pg_hba_file_rules`) use `trust` for local and loopback connections inside the container and `scram-sha-256` for all other hosts. On a single-user development machine, Docker access is effectively administrator access, so this is accepted for development only. For any shared or cloud deployment, replace the rules so no connection uses `trust` | **Verified 2026-11-15 (container network):** a wrong password from another container was refused, and the database log named the rule `host all all all scram-sha-256` (pg_hba.conf line 128); the correct password was accepted. **Verified 2026-11-15 (published port, from Windows, through psycopg):** a wrong password and an unknown user were refused and the correct password was accepted (section 7) |
+| T21 | A host security control (Windows Smart App Control) intermittently blocks unsigned compiled libraries, so local verification can fail without a code defect | Availability, process | Never weaken the control; repeat and record failing runs; run the same unit tests in Linux continuous integration; research a driver option before M3 | Cause unknown. **Observed 2026-11-19:** the libpq library was blocked once and then loaded in four later runs (DEC-014). CI result pending |
 
 ## 5. Assumptions and out of scope
 
@@ -84,4 +85,5 @@ This model covers HALO v0.1 only: a single organisation on one Windows machine, 
 - **2026-11-15, T12 (API exposed beyond this machine):** a non-loopback `api_host` is rejected (unit test). The real server reported `127.0.0.1:8000` at start-up, answered over loopback, and a connection to the Wi-Fi address on port 8000 failed. Limits: a firewall could also explain the failed connection; `Get-NetTCPConnection` and `netstat` showed no listeners for the API or the database container on this machine, so they were not used; only production mode was run as a real server.
 - **2026-11-15, T13 (sensitive data in logs and errors):** unit tests show the configured database password is replaced in log messages, and that an unhandled error returns a generic 500 without the internal message. Limits: tracebacks are not redacted, the filter knows only the database password, and no running system's logs have been reviewed.
 - **2026-11-15, T19:** `halo_owner` is used only by the integration tests (DEC-013, proposed).
+- **2026-11-19, T21:** Smart App Control blocked the database driver's libpq library once (Code Integrity event 3077 at 18:28:26). A following test run reported one error. Four later runs passed with no new events. Cause unknown (DEC-014).
 - **Not yet covered:** T1 to T11 and T14 to T18 have no implementation to test, because the API has no authentication, data endpoints or file handling yet.

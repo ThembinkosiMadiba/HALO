@@ -2,7 +2,7 @@
 
 **Status:** Draft v0.1
 **Owner:** Thembinkosi Madiba
-**Last updated:** 2026-11-15
+**Last updated:** 2026-11-21
 
 Each significant decision is recorded with its date, status and reason. A decision is changed by adding a new entry that supersedes the old one, never by editing history.
 
@@ -23,6 +23,8 @@ Each significant decision is recorded with its date, status and reason. A decisi
 | DEC-011 | Short-lived feature branches from M2; documentation-only fixes may go directly to `main` | 2026-11-15 | Accepted |
 | DEC-012 | Backend dependency set (28 pinned packages); SQLAlchemy 2.0 pin proposed after Smart App Control blocked 2.1.8 | 2026-11-15 | Verified; SQLAlchemy part proposed |
 | DEC-013 | Database owner account used only by integration tests until halo_app exists | 2026-11-15 | Proposed; verified in use |
+| DEC-014 | Smart App Control blocked the database driver library once (finding, no decision) | 2026-11-21 | Recorded; cause unknown |
+| DEC-015 | Run the unit tests on GitHub Actions (pinned actions, Linux runner) | 2026-11-21 | Proposed; not yet run on GitHub |
 
 ## DEC-001: Python 3.14 for HALO
 
@@ -96,7 +98,7 @@ Each significant decision is recorded with its date, status and reason. A decisi
 - **Status:** the dependency set is **verified**. The SQLAlchemy part is **Proposed** and awaits the owner.
 - **Decision (verified):** the backend environment uses Python 3.14.10 and the 28 packages pinned in `backend/requirements.txt`, installed with `--only-binary=:all:`. Details and declared licences: `docs/research/dependency-register.md`.
 - **Verified results:** `pip check` clean; installed set equals the file; all modules import; `psycopg` uses its binary implementation. A rebuild from the file reproduced the environment, using pip cache.
-- **Finding: Smart App Control blocked a compiled file.** SQLAlchemy 2.1.8 installed, but `import sqlalchemy` failed with "An Application Control policy has blocked this file" for `sqlalchemy/sql/_util_cy.cp314-win_amd64.pyd`. Code Integrity events 3077 and 3033, logged 2026-11-15 11:37:35, say the file did not meet the Enterprise signing level requirements. Other compiled files (`pydantic_core`, `psycopg_binary`) loaded normally. Both the blocked file and `pydantic_core` are reported as unsigned, so signing does not explain the difference. The cause is not established.
+- **Finding: Smart App Control blocked a compiled file.** SQLAlchemy 2.1.8 installed, but `import sqlalchemy` failed with "An Application Control policy has blocked this file" for `sqlalchemy/sql/_util_cy.cp314-win_amd64.pyd`. Code Integrity events 3077 and 3033, logged 2026-11-15 11:37:35, say the file did not meet the Enterprise signing level requirements. Other compiled files (`pydantic_core`, `psycopg_binary`) loaded at that time (see DEC-014: the library inside `psycopg_binary` was blocked once later). Both the blocked file and `pydantic_core` are reported as unsigned, so signing does not explain the difference. The cause is not established.
 - **Test in a throwaway environment (verified):** SQLAlchemy 2.0.57 imports and runs a query, reports compiled extensions as not in use, and Windows blocked `cyextension/immutabledict.cp314-win_amd64.pyd`. The library fell back to pure Python. Argon2 (with cffi bindings), MarkupSafe and greenlet loaded, and Argon2 produced an argon2id hash.
 - **Proposed:** pin SQLAlchemy to `>=2.0,<2.1` (2.0.57 verified) when it is first needed in M3. Do not install SQLAlchemy in M2, which needs only `psycopg` for its connection test. Do not use 2.1.x until Windows accepts its compiled file or a reason appears.
 - **Standing rule:** Smart App Control and similar protections are not to be turned off or excluded to make a package work.
@@ -116,3 +118,29 @@ Each significant decision is recorded with its date, status and reason. A decisi
 - **Limits:** the tests do not show that `halo_app` is restricted, because it does not exist yet. They need a running Docker container. A connection failure reports only the exception type.
 - **Alternative considered:** create `halo_app` by hand now. Rejected, because role and schema changes come from migrations (DEC-010).
 - **Revisit when:** M3 creates `halo_app`. Then the tests switch to it, and `halo_owner` is used only for migrations.
+
+## DEC-014: Smart App Control blocked the database driver's library once (finding, no decision)
+
+- **Date:** 2026-11-21 (event logged 2026-11-19 18:28:26)
+- **Status:** recorded. Nothing has been decided, and the cause is unknown.
+- **Finding:** Windows Security blocked `psycopg_binary.libs\libpq-96481ecb5179815d0c6c8eadb81eca76.dll` ("can't confirm who published"). Code Integrity event 3077 records it. A unit-test run shortly afterwards reported 1 error and 1 warning. The error text was not captured, so the link between the block and that error is an inference.
+- **What happened afterwards (verified):** a later run passed (15 passed, 16.55 s), `psycopg` reported its binary implementation, and three consecutive runs passed in about 1 to 2 s each with no new block events. The DLL is reported as unsigned. Smart App Control state value is 1.
+- **Earlier:** the same DLL loaded without incident, including during the integration tests on 2026-11-15. The earlier statement that the other compiled files "loaded normally" was too strong and is corrected in DEC-012 and the dependency register.
+- **Unknown:** why it was blocked once and not again. Unverified ideas: a change in a cloud reputation decision; re-evaluation after a restart (the terminal session was reopened, but whether Windows restarted is not known).
+- **Consequence:** local test runs may fail intermittently. If the driver library is blocked, the integration tests and the application's database access on this machine would fail too. That bears on milestone M3.
+- **Standing rule:** Smart App Control is not turned off and no exclusions are added.
+- **Options, none chosen or tested:** a pure-Python PostgreSQL driver; a separately obtained signed libpq; running the backend in a Linux container. Each needs its licence, behaviour and compatibility with SQLAlchemy 2.0.57 checked on a throwaway environment first.
+- **Mitigation in place:** the same unit tests run in Linux continuous integration (DEC-015), which is independent of this problem. Block events are recorded.
+- **Revisit when:** the block recurs, or before M3.
+
+## DEC-015: Run the unit tests on GitHub Actions (Proposed; written, not yet run on GitHub)
+
+- **Date:** 2026-11-21
+- **Status:** Proposed. The workflow is committed on branch `ci/unit-tests` and has not run on GitHub yet.
+- **Workflow:** `.github/workflows/backend-tests.yml`. It runs on every push to any branch, on `ubuntu-latest`, with a 10-minute timeout. Steps: check out, set up Python 3.14, install `backend/requirements.txt` with `--only-binary=:all:`, compile all Python files with syntax warnings as errors, and run the unit tests.
+- **Security choices:** read-only repository permission; credentials not persisted; no secrets; no database; no integration tests; third-party actions pinned to commit SHAs read from the official repositories on 2026-11-21: `actions/checkout` at the commit behind tag v6, and `actions/setup-python` at v6.1.0. Both SHAs were re-checked against the repositories' tags. Tags `v7` exist for both actions and were not evaluated.
+- **Local checks (verified):** the compile check exits 0 on the real code and non-zero on a deliberately bad escape sequence; the unit tests pass locally.
+- **Limits:** a Linux runner cannot detect Windows-only problems such as Smart App Control. It does not run the integration tests. The YAML syntax can be checked only by GitHub.
+- **Cost and billing (as reported by the owner):** GitHub Free plan; no payment method; Actions budget $0.00; $0.28 of gross metered usage fully covered by included discounts. The meaning of "100% usage blocked" on the billing page is unclear. Third-party sources report 2,000 free Linux minutes per month for private repositories on the Free plan. This was not confirmed on GitHub's own page.
+- **Not verified:** the first run on GitHub; whether `psycopg-binary` has a Linux wheel for Python 3.14 (a failure at the install step would show it).
+- **Revisit when:** the first run completes, the allowance runs out, or v7 of the actions is evaluated.
