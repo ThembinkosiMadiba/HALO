@@ -70,6 +70,7 @@ Only verified facts are recorded as facts; everything else is marked as open.
 12. Proposed 2026-11-15, awaiting the owner (DEC-013): the integration tests may use the database owner account until `halo_app` exists in M3; no application code may use it.
 13. Recorded 2026-11-21 (DEC-014, a finding with no decision): Smart App Control blocked the database driver's libpq library once; cause unknown; the control stays on, with no exclusions.
 14. Proposed 2026-11-21 (DEC-015) and verified working on GitHub: run the unit tests on GitHub Actions with pinned actions on a Linux runner. Awaiting the owner's explicit acceptance.
+15. Proposed 2026-11-21, awaiting the owner (DEC-016): use the pure-Python pg8000 driver instead of psycopg, with SQLAlchemy 2.0 from M3. Tested in a throwaway environment; nothing in the project has changed.
 
 ## Open items
 
@@ -94,8 +95,10 @@ Only verified facts are recorded as facts; everything else is marked as open.
 - [ ] Owner replies pending: the SQLAlchemy proposal (DEC-012) and the integration-test account exception (DEC-013).
 - [x] CI verified on GitHub 2026-11-21: runs #2 and #3 passed, and prebuilt Linux wheels exist for all 28 packages. Not evaluated: the v7 tags of both actions.
 - [ ] Smart App Control blocked the database driver's libpq library once (2026-11-19) and not in four later runs. Cause unknown. If it recurs it affects the integration tests and milestone M3. Options are listed in DEC-014 and none has been researched or chosen.
-- [ ] Owner to say whether Windows restarted between 2026-11-15 and the 2026-11-19 failure (the terminal showed "History restored").
+- [x] Restart question answered from the System log on 2026-11-21: no restart or shutdown is logged between 2026-11-13 19:45:56 and 2026-11-21 13:07:44, so a restart is not supported as the explanation for the 2026-11-19 block (DEC-014).
 - [ ] The GitHub billing page says "100% usage blocked", yet jobs run. $0.28 of gross usage was recorded before any job and its source is unknown. Minutes used by the three runs are not known (the run page has a Usage link).
+- [ ] pg8000 (DEC-016) is unverified for: speed, Alembic, PostGIS types, maintenance activity, and any M3 feature. greenlet is still a compiled dependency and could be blocked.
+- [ ] The Usage page of the GitHub Actions run has not been checked, so minutes consumed are unknown.
 - [ ] `.env.example` does not list the `HALO_*` settings (environment, log level, API host and port, application database account). Add them when the application first connects to the database (M3).
 - [ ] On this machine `Get-NetTCPConnection` and `netstat` show no listeners, even for the running API, so they cannot verify bind addresses. The evidence used instead is in the threat model verification log.
 - [ ] The API was run as a real server only in production mode. Development mode (API docs on) is tested in-process only.
@@ -108,8 +111,8 @@ Only verified facts are recorded as facts; everything else is marked as open.
 
 ## Next steps
 
-1. Owner: answer the pending proposals (DEC-012, DEC-013, DEC-015) and the open decisions that block M3: MFA timing, email uniqueness, one role per user, the seeded system organisation, keeping submitted_text, trigger-based append-only protection.
-2. Research the database-driver options on a throwaway environment before M3 (DEC-014): licence, behaviour with Smart App Control, and compatibility with SQLAlchemy 2.0.57.
+1. Owner: accept or change DEC-016 (pg8000), and answer the pending proposals (DEC-012, DEC-013, DEC-015) and the open decisions that block M3: MFA timing, email uniqueness, one role per user, the seeded system organisation, keeping submitted_text, trigger-based append-only protection.
+2. If DEC-016 is accepted: a branch that replaces psycopg with pg8000 in requirements and the integration tests, verified on Windows and in CI.
 3. Frontend scaffold on its own branch. Test the Node tooling on a throwaway project first, because Smart App Control may block native binaries there too.
 4. Possible later CI additions, each needing its own decision: a dependency vulnerability scan, and integration tests with a database service container.
 5. M3: first migration and authentication, once its decisions are made.

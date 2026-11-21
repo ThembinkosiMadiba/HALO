@@ -71,6 +71,19 @@ Every dependency is recorded with its version, declared licence and role. Licenc
 
 Each gets its licence read and its behaviour tested on its own branch before use.
 
+## Database driver candidate (tested 2026-11-21, not installed in the project environment)
+
+| Package | Version | Declared licence | Compiled |
+|---|---|---|---|
+| pg8000 | 1.31.6 | BSD 3-Clause License | No |
+| scramp | 1.5.0 | MIT-0 | No |
+| asn1crypto | 1.5.1 | MIT | No |
+| python-dateutil | 4.0.0 | BSD-3-Clause | No |
+| SQLAlchemy | 2.0.58 | MIT | Optional extensions (blocked by Smart App Control, falls back to pure Python) |
+| greenlet | 3.5.6 | MIT AND PSF-2.0 | Yes (loaded in the test; installed as a dependency of SQLAlchemy 2.0) |
+
+Result: direct and SQLAlchemy connections ran `select 1` against PostgreSQL 18.6, and a wrong password was refused. Proposed in DEC-016. Licences are as declared by the packages and have not been reviewed legally.
+
 ## Not done
 
 - No hash pinning (`--require-hashes`). Exact version pinning limits but does not remove supply-chain risk.

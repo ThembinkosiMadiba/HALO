@@ -25,6 +25,7 @@ Each significant decision is recorded with its date, status and reason. A decisi
 | DEC-013 | Database owner account used only by integration tests until halo_app exists | 2026-11-15 | Proposed; verified in use |
 | DEC-014 | Smart App Control blocked the database driver library once (finding, no decision) | 2026-11-21 | Recorded; cause unknown |
 | DEC-015 | Run the unit tests on GitHub Actions (pinned actions, Linux runner) | 2026-11-21 | Proposed; verified working on GitHub |
+| DEC-016 | Use the pure-Python pg8000 driver instead of psycopg (with SQLAlchemy 2.0) | 2026-11-21 | Proposed; tested in a throwaway environment |
 
 ## DEC-001: Python 3.14 for HALO
 
@@ -126,11 +127,12 @@ Each significant decision is recorded with its date, status and reason. A decisi
 - **Finding:** Windows Security blocked `psycopg_binary.libs\libpq-96481ecb5179815d0c6c8eadb81eca76.dll` ("can't confirm who published"). Code Integrity event 3077 records it. A unit-test run shortly afterwards reported 1 error and 1 warning. The error text was not captured, so the link between the block and that error is an inference.
 - **What happened afterwards (verified):** a later run passed (15 passed, 16.55 s), `psycopg` reported its binary implementation, and three consecutive runs passed in about 1 to 2 s each with no new block events. The DLL is reported as unsigned. Smart App Control state value is 1.
 - **Earlier:** the same DLL loaded without incident, including during the integration tests on 2026-11-15. The earlier statement that the other compiled files "loaded normally" was too strong and is corrected in DEC-012 and the dependency register.
-- **Unknown:** why it was blocked once and not again. Unverified ideas: a change in a cloud reputation decision; re-evaluation after a restart (the terminal session was reopened, but whether Windows restarted is not known).
+- **Unknown:** why it was blocked once and not again. Boot history from the System log (Kernel-General events 12 and 13): a start at 2026-11-13 19:45:56, then shutdowns and starts on 2026-11-21 at 13:07:44/13:07:53 and 13:09:35/13:09:48. No restart or shutdown is logged between 2026-11-13 19:45:56 and 2026-11-21 13:07:44, so the 2026-11-15 loads, the 2026-11-19 18:28 block and the later runs fall inside one boot session as far as the log shows. A restart is therefore not supported as the explanation. Limits: sleep, hibernate and fast-startup cycles may not be logged, and the 2026-11-13 start has no matching shutdown entry. Still unverified: a change in a cloud reputation decision.
 - **Consequence:** local test runs may fail intermittently. If the driver library is blocked, the integration tests and the application's database access on this machine would fail too. That bears on milestone M3.
 - **Standing rule:** Smart App Control is not turned off and no exclusions are added.
 - **Options, none chosen or tested:** a pure-Python PostgreSQL driver; a separately obtained signed libpq; running the backend in a Linux container. Each needs its licence, behaviour and compatibility with SQLAlchemy 2.0.57 checked on a throwaway environment first.
 - **Mitigation in place:** the same unit tests run in Linux continuous integration (DEC-015), which is independent of this problem. Block events are recorded.
+- **Further observation, 2026-11-21 14:18:34:** in a throwaway environment Smart App Control blocked `sqlalchemy/cyextension/processors.cp314-win_amd64.pyd` (SQLAlchemy 2.0.58) and SQLAlchemy ran in pure Python. The unsigned `greenlet` extension loaded in the same test. See DEC-016.
 - **Revisit when:** the block recurs, or before M3.
 
 ## DEC-015: Run the unit tests on GitHub Actions (Proposed; verified working)
@@ -148,3 +150,16 @@ Each significant decision is recorded with its date, status and reason. A decisi
 - **Mistake and lesson:** the install step had an unquoted `: ` inside the command (`--only-binary=:all: -r`), which is invalid YAML. An earlier note in this record wrongly said GitHub was the only place to check YAML syntax. The fix is a `run: |` block scalar (commit bce2bb3). From now on a changed workflow is parsed locally with PyYAML in a throwaway environment, with a negative control (see CONTRIBUTING.md). PyYAML 6.0.4 parsed the fixed file (5 steps) and rejected the broken line with "mapping values are not allowed here". It declares the MIT licence and is not a project dependency.
 - **Still unknown:** how many Actions minutes the runs used (billing rounding was not checked); what produced the earlier $0.28 of gross usage; whether 2,000 free minutes per month applies (only third-party sources were seen); the v7 tags of both actions.
 - **Revisit when:** the allowance runs out, a dependency scan or integration tests are added to CI, or v7 of the actions is evaluated.
+
+## DEC-016: Pure-Python PostgreSQL driver (pg8000) instead of psycopg (Proposed)
+
+- **Date:** 2026-11-21
+- **Status:** Proposed, awaiting the owner. Tested in a throwaway environment; nothing in the project has changed.
+- **Proposed decision:** use `pg8000` as the PostgreSQL driver, replacing `psycopg` and `psycopg-binary`, with SQLAlchemy `>=2.0,<2.1` (2.0.58 tested) from M3. Make the change on its own branch: update `backend/requirements.txt` and the integration tests, verify on Windows and in CI.
+- **Why:** Smart App Control blocked the unsigned libpq library inside `psycopg-binary` once (DEC-014). pg8000 and its dependencies (scramp, asn1crypto, python-dateutil) are pure Python, so they contain no compiled file to block. Their declared licences are permissive, with no LGPL.
+- **Verified on 2026-11-21 (throwaway environment, database container running):** all packages installed with `--only-binary=:all:`; a direct pg8000 connection ran `select 1` and reported server 18.6; a wrong password was refused with a message mentioning authentication; SQLAlchemy 2.0.58 with `postgresql+pg8000` ran `select 1`; `greenlet` imported. Declared licences: pg8000 BSD 3-Clause, scramp MIT-0, asn1crypto MIT, python-dateutil BSD-3-Clause, SQLAlchemy MIT, greenlet MIT AND PSF-2.0.
+- **Not removed by this change:** compiled code remains in SQLAlchemy's optional extensions (blocked, with a safe fallback to pure Python) and in `greenlet`, which SQLAlchemy 2.0 installs as a dependency here. It loaded in this test but could be blocked.
+- **Not verified:** pg8000 speed; behaviour with Alembic and with PostGIS types; maintenance activity; whether M3 needs a feature it lacks; the licences beyond what the packages declare.
+- **Options not taken:** keep psycopg and accept intermittent blocks; a separately obtained signed libpq (not researched); run the backend in a Linux container (more memory on a tight machine).
+- **Consequence for DEC-012:** the SQLAlchemy 2.0 pin stands, and 2.0.58 is now the tested version.
+- **Revisit when:** a feature M3 needs is missing from pg8000, Smart App Control blocks greenlet, or Windows accepts the psycopg libraries reliably.
