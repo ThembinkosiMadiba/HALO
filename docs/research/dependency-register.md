@@ -2,7 +2,7 @@
 
 **Status:** Draft v0.1
 **Owner:** Thembinkosi Madiba
-**Last updated:** 2026-11-15
+**Last updated:** 2026-11-21
 
 Every dependency is recorded with its version, declared licence and role. Licences below are what each package **declares in its own metadata**, read from the installed packages on 2026-11-15. They are not a legal review. Packages are installed with `--only-binary=:all:` so no third-party build script runs during installation.
 
@@ -12,7 +12,7 @@ Every dependency is recorded with its version, declared licence and role. Licenc
 - Install: `backend\.venv\Scripts\python.exe -m pip install --only-binary=:all: -r backend\requirements.txt`
 - 28 packages pinned to exact versions in `backend/requirements.txt`.
 - Verified: `pip check` reports no broken requirements; the installed set equals the file; every module imports. A rebuild from the file used pip's cache, so it was not a fresh network resolution.
-- Smart App Control is enforcing on the development machine. Only two packages here contain compiled extensions (`psycopg-binary` and `pydantic-core`), and both loaded normally. See DEC-012.
+- Smart App Control is enforcing on the development machine. Only two packages here contain compiled extensions (`psycopg-binary` and `pydantic-core`), and both normally load, but Smart App Control blocked the unsigned libpq library bundled in `psycopg-binary` once on 2026-11-19 (DEC-014). See also DEC-012.
 
 ## Packages
 

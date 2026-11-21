@@ -2,7 +2,7 @@
 
 **Status:** Draft v0.1 (Phase 0)
 **Owner:** Thembinkosi Madiba
-**Last updated:** 2026-11-15
+**Last updated:** 2026-11-21
 
 This document describes how HALO v0.1 is structured and why. Items marked **Proposed** await the owner's review. Nothing described here is implemented yet. It should be read with `docs/governance/scope-and-boundaries.md` and `docs/security/threat-model.md`.
 
@@ -149,6 +149,15 @@ Signed tokens (JWT) are not proposed for v0.1. They are harder to revoke, and th
 - **Tests:** 15 unit tests (`pytest backend`) and 3 integration tests that need the database container (`pytest backend -m integration`). The integration tests use the database owner account as a documented exception (DEC-013, proposed).
 - **Verified 2026-11-15:** all 18 tests pass. The real server, started in production mode, reported `127.0.0.1:8000` in its start-up log, answered the health check over loopback with the expected headers, returned 404 for `/docs`, and a connection to the machine's Wi-Fi address on port 8000 failed.
 - **Limits of that verification:** a firewall could also have refused the Wi-Fi connection. Windows listener tools showed no listeners for either the API or the database container on this machine, so they were not used as evidence. Development mode was tested in-process only.
+
+## 10.3 Continuous integration (written, not yet run on GitHub)
+
+- **Workflow:** `.github/workflows/backend-tests.yml`, decision DEC-015 (proposed).
+- **What it does:** on every push, on a Linux runner, installs the pinned dependencies from prebuilt wheels, compiles every Python file with syntax warnings treated as errors, and runs the 15 unit tests.
+- **What it does not do:** run the integration tests (they need the database container), test on Windows, scan dependencies, or check licences.
+- **Security:** read-only token, no persisted credentials, no secrets, third-party actions pinned to commit SHAs.
+- **Why it matters here:** the local machine enforces Smart App Control, which blocked compiled libraries twice (DEC-012 and DEC-014). A Linux run is independent of that.
+- **Status:** the first run on GitHub has not happened. This section is updated when it has.
 
 ## 11. Technology choices
 
