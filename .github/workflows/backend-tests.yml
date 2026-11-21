@@ -32,7 +32,8 @@ jobs:
           python-version: "3.14"
 
       - name: Install pinned dependencies (prebuilt wheels only)
-        run: python -m pip install --only-binary=:all: -r backend/requirements.txt
+        run: |
+          python -m pip install --only-binary=:all: -r backend/requirements.txt
 
       - name: Compile all Python files, syntax warnings as errors
         run: python -W error::SyntaxWarning -m compileall -q backend/app backend/tests backend/run_dev.py
