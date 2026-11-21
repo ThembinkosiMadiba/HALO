@@ -1,0 +1,41 @@
+name: backend-tests
+
+# Runs the backend unit tests on every push to any branch.
+# Limits (see docs): Linux runner only, so Windows-specific problems (for example Smart App Control)
+# are not detected; no database, so integration tests are not run; no secrets are used.
+on:
+  push:
+    branches: ["**"]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: backend-tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  unit-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      # Third-party actions are pinned to full commit SHAs, not moving tags.
+      # SHAs read with git ls-remote on 2026-11-15. v7 tags exist for both actions and were not evaluated.
+      - name: Check out the repository
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6 (major tag at the time)
+        with:
+          persist-credentials: false
+
+      - name: Set up Python 3.14
+        uses: actions/setup-python@83679a892e2d95755f2dac6acb0bfd1e9ac5d548 # v6.1.0
+        with:
+          python-version: "3.14"
+
+      - name: Install pinned dependencies (prebuilt wheels only)
+        run: python -m pip install --only-binary=:all: -r backend/requirements.txt
+
+      - name: Compile all Python files, syntax warnings as errors
+        run: python -W error::SyntaxWarning -m compileall -q backend/app backend/tests backend/run_dev.py
+
+      - name: Run unit tests
+        run: python -m pytest backend -q
